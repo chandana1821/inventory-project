@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        /* Navigation */
+        nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 1rem;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.8rem;
+            color: #2d3748;
+        }
+
+        .date-time {
+            background: #f7fafc;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .date {
+            font-size: 1rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .time {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 0.25rem;
+        }
+
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-header p {
+            color: #718096;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            opacity: 0.2;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.9rem;
+            color: #48bb78;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-change.negative {
+            color: #f56565;
+        }
+
+        /* Charts Row */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .chart-card h3 {
+            margin-bottom: 1rem;
+            color: #4a5568;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Tables Row */
+        .tables-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .table-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .table-card h3 {
+            margin-bottom: 1rem;
+            color: #4a5568;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .view-all {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem;
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #2d3748;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fefcbf; color: #744210; }
+        .status-processing { background: #bee3f8; color: #2c5282; }
+        .status-shipped { background: #c3dafe; color: #434190; }
+        .status-delivered { background: #c6f6d5; color: #22543d; }
+        .status-cancelled { background: #fed7d7; color: #742a2a; }
+
+        .low-stock {
+            color: #e53e3e;
+            font-weight: 600;
+        }
+
+        /* Activity Logs */
+        .activity-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            transition: background 0.3s;
+        }
+
+        .activity-item:hover {
+            background: #f7fafc;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-action {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        .activity-details {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-user {
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        /* Loading States */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #718096;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error State */
+        .error-message {
+            background: #fff5f5;
+            color: #c53030;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .charts-row,
+            .tables-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .stat-card {
+                padding: 1rem;
+            }
+            
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">E-Commerce Admin</div>
+            <ul class="nav-menu">
+                <li><a href="/" class="active">Dashboard</a></li>
+                <li><a href="/users">Users</a></li>
+                <li><a href="/products">Products</a></li>
+                <li><a href="/orders">Orders</a></li>
+                <li><a href="/logs">Activity Logs</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1>Dashboard Overview</h1>
+                <p style="color: #718096; margin-top: 0.5rem;">Welcome back! Here's what's happening with your store today.</p>
+            </div>
+            <div class="date-time">
+                <div class="date" id="currentDate"></div>
+                <div class="time" id="currentTime"></div>
+            </div>
+            <button class="refresh-btn" onclick="loadDashboardData()">
+                <span>↻</span> Refresh Data
+            </button>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsContainer">
+            <!-- Will be populated by JavaScript -->
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+            <!-- Order Status Chart -->
+            <div class="chart-card">
+                <h3>📊 Order Status Distribution</h3>
+                <div id="orderStatusChart" style="height: 300px;">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading chart data...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Products -->
+            <div class="chart-card">
+                <h3>🔥 Top Selling Products</h3>
+                <div id="topProducts" style="height: 300px;">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading products...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables Row -->
+        <div class="tables-row">
+            <!-- Recent Orders -->
+            <div class="table-card">
+                <h3>
+                    📦 Recent Orders
+                    <a href="/orders" class="view-all">View All →</a>
+                </h3>
+                <div class="table-container">
+                    <table id="recentOrdersTable">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Low Stock Alert -->
+            <div class="table-card">
+                <h3>
+                    ⚠️ Low Stock Alert
+                    <a href="/products" class="view-all">Manage Stock →</a>
+                </h3>
+                <div class="table-container">
+                    <table id="lowStockTable">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Current Stock</th>
+                                <th>Threshold</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Logs -->
+        <div class="activity-card">
+            <h3 style="margin-bottom: 1.5rem;">🕒 Recent Activity Logs</h3>
+            <div class="activity-list" id="activityLogs">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Service
+        const API = {
+            async request(endpoint) {
+                try {
+                    const response = await fetch(endpoint);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API Error (${endpoint}):`, error);
+                    throw error;
+                }
+            },
+
+            async getUsers() {
+                return this.request('/api/users');
+            },
+
+            async getProducts() {
+                return this.request('/api/products');
+            },
+
+            async getOrders() {
+                return this.request('/api/orders');
+            },
+
+            async getInventory() {
+                return this.request('/api/inventory');
+            },
+
+            async getLogs(limit = 20) {
+                return this.request(`/api/logs?limit=${limit}`);
+            }
+        };
+
+        // Utility Functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return `${seconds} seconds ago`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+            return `${Math.floor(seconds / 86400)} days ago`;
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'success' ? '#48bb78' : '#f56565'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 9999;
+                animation: slideIn 0.3s ease;
+            `;
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 3000);
+        }
+
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentDate').textContent = 
+                now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('currentTime').textContent = 
+                now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Load all dashboard data
+        async function loadDashboardData() {
+            try {
+                // Show loading states
+                document.getElementById('statsContainer').innerHTML = `
+                    <div class="stat-card">
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <p>Loading statistics...</p>
+                        </div>
+                    </div>
+                `;
+
+                // Fetch all data in parallel
+                const [users, products, orders, inventory, logs] = await Promise.all([
+                    API.getUsers().catch(() => []),
+                    API.getProducts().catch(() => []),
+                    API.getOrders().catch(() => []),
+                    API.getInventory().catch(() => []),
+                    API.getLogs(20).catch(() => [])
+                ]);
+
+                // Update stats cards
+                updateStatsCards(users, products, orders, inventory);
+                
+                // Update recent orders table
+                updateRecentOrders(orders);
+                
+                // Update low stock table
+                updateLowStock(inventory);
+                
+                // Update activity logs
+                updateActivityLogs(logs);
+                
+                // Update charts
+                updateOrderStatusChart(orders);
+                updateTopProducts(orders, products);
+
+                showAlert('Dashboard updated successfully!', 'success');
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showAlert('Error loading dashboard data', 'error');
+                
+                document.getElementById('statsContainer').innerHTML = `
+                    <div class="error-message">
+                        Failed to load dashboard data. Please try again.
+                        <button onclick="loadDashboardData()" style="margin-left: 1rem; padding: 0.5rem 1rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Retry
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function updateStatsCards(users, products, orders, inventory) {
+            const totalUsers = users.length;
+            const totalProducts = products.length;
+            const totalOrders = orders.length;
+            const totalRevenue = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+            const lowStockCount = inventory.filter(item => item.is_low_stock).length;
+            
+            // Calculate pending orders
+            const pendingOrders = orders.filter(o => o.status === 'pending').length;
+            
+            // Calculate growth (mock data - you can calculate based on previous period)
+            const userGrowth = '+12%';
+            const orderGrowth = '+8%';
+            const revenueGrowth = '+15%';
+
+            document.getElementById('statsContainer').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <p>Total Users</p>
+                        <span class="stat-icon">👥</span>
+                    </div>
+                    <div class="stat-value">${totalUsers}</div>
+                    <div class="stat-change">
+                        <span>↑</span> ${userGrowth} from last month
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <p>Total Products</p>
+                        <span class="stat-icon">📦</span>
+                    </div>
+                    <div class="stat-value">${totalProducts}</div>
+                    <div class="stat-change ${lowStockCount > 0 ? 'negative' : ''}">
+                        ${lowStockCount > 0 ? `⚠️ ${lowStockCount} low in stock` : '✓ All in stock'}
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <p>Total Orders</p>
+                        <span class="stat-icon">🛒</span>
+                    </div>
+                    <div class="stat-value">${totalOrders}</div>
+                    <div class="stat-change">
+                        <span>↑</span> ${orderGrowth} from last month
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <p>Total Revenue</p>
+                        <span class="stat-icon">💰</span>
+                    </div>
+                    <div class="stat-value">${formatCurrency(totalRevenue)}</div>
+                    <div class="stat-change">
+                        <span>↑</span> ${revenueGrowth} from last month
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateRecentOrders(orders) {
+            const tbody = document.querySelector('#recentOrdersTable tbody');
+            if (!orders || orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No orders found</td></tr>';
+                return;
+            }
+
+            const recentOrders = orders.slice(0, 5);
+            tbody.innerHTML = recentOrders.map(order => `
+                <tr>
+                    <td>#${order.id}</td>
+                    <td>${order.user_name || 'N/A'}</td>
+                    <td>${formatCurrency(order.total_amount)}</td>
+                    <td>
+                        <span class="status-badge status-${order.status}">
+                            ${order.status}
+                        </span>
+                    </td>
+                    <td>${formatDate(order.order_date)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateLowStock(inventory) {
+            const tbody = document.querySelector('#lowStockTable tbody');
+            if (!inventory || inventory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No inventory data</td></tr>';
+                return;
+            }
+
+            const lowStock = inventory.filter(item => item.is_low_stock).slice(0, 5);
+            
+            if (lowStock.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #48bb78;">✓ All products have sufficient stock</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = lowStock.map(item => `
+                <tr>
+                    <td>${item.product_name}</td>
+                    <td class="low-stock">${item.quantity}</td>
+                    <td>${item.low_stock_threshold}</td>
+                    <td>
+                        <span class="status-badge status-pending">Low Stock</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateActivityLogs(logs) {
+            const container = document.getElementById('activityLogs');
+            
+            if (!logs || logs.length === 0) {
+                container.innerHTML = '<div class="loading">No activity logs found</div>';
+                return;
+            }
+
+            // Define icons for different actions
+            const actionIcons = {
+                'USER_CREATE': '👤',
+                'USER_UPDATE': '✏️',
+                'USER_DELETE': '🗑️',
+                'PRODUCT_CREATE': '📦',
+                'PRODUCT_UPDATE': '📝',
+                'PRODUCT_DELETE': '❌',
+                'ORDER_CREATE': '🛒',
+                'ORDER_VIEW': '👁️',
+                'INVENTORY_UPDATE': '📊',
+                'LOGIN': '🔑',
+                'LOGOUT': '🚪'
+            };
+
+            // Define colors for different actions
+            const actionColors = {
+                'USER_CREATE': '#10b981',
+                'USER_UPDATE': '#f59e0b',
+                'USER_DELETE': '#ef4444',
+                'PRODUCT_CREATE': '#10b981',
+                'PRODUCT_UPDATE': '#f59e0b',
+                'PRODUCT_DELETE': '#ef4444',
+                'ORDER_CREATE': '#8b5cf6',
+                'ORDER_VIEW': '#6366f1',
+                'INVENTORY_UPDATE': '#ec4899'
+            };
+
+            container.innerHTML = logs.map(log => {
+                const icon = actionIcons[log.action] || '📝';
+                const color = actionColors[log.action] || '#6b7280';
+                
+                return `
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background: ${color}20; color: ${color}">
+                            ${icon}
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-header">
+                                <span class="activity-action">${log.action}</span>
+                                <span class="activity-time">${formatTimeAgo(log.timestamp)}</span>
+                            </div>
+                            <div class="activity-details">
+                                ${log.details || 'No details provided'}
+                            </div>
+                            <div class="activity-user">
+                                ${log.user_id ? `User ID: ${log.user_id}` : 'System'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateOrderStatusChart(orders) {
+            const container = document.getElementById('orderStatusChart');
+            
+            if (!orders || orders.length === 0) {
+                container.innerHTML = '<div class="loading">No order data available</div>';
+                return;
+            }
+
+            // Count orders by status
+            const statusCounts = {};
+            orders.forEach(order => {
+                statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
+            });
+
+            // Create simple bar chart
+            const statusColors = {
+                'pending': '#fbbf24',
+                'processing': '#60a5fa',
+                'shipped': '#8b5cf6',
+                'delivered': '#34d399',
+                'cancelled': '#f87171'
+            };
+
+            const maxCount = Math.max(...Object.values(statusCounts));
+            
+            let chartHtml = '<div style="padding: 1rem;">';
+            
+            Object.entries(statusCounts).forEach(([status, count]) => {
+                const percentage = (count / maxCount) * 100;
+                chartHtml += `
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <span style="text-transform: capitalize;">${status}</span>
+                            <span style="font-weight: 600;">${count}</span>
+                        </div>
+                        <div style="background: #edf2f7; height: 24px; border-radius: 12px; overflow: hidden;">
+                            <div style="background: ${statusColors[status] || '#a0aec0'}; width: ${percentage}%; height: 100%; border-radius: 12px;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            chartHtml += '</div>';
+            container.innerHTML = chartHtml;
+        }
+
+        function updateTopProducts(orders, products) {
+            const container = document.getElementById('topProducts');
+            
+            if (!orders || orders.length === 0 || !products) {
+                container.innerHTML = '<div class="loading">No sales data available</div>';
+                return;
+            }
+
+            // Count product sales from orders
+            const productSales = {};
+            orders.forEach(order => {
+                if (order.items) {
+                    order.items.forEach(item => {
+                        const productName = item.product_name || `Product ${item.product_id}`;
+                        productSales[productName] = (productSales[productName] || 0) + item.quantity;
+                    });
+                }
+            });
+
+            // Sort and get top 5
+            const topProducts = Object.entries(productSales)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            if (topProducts.length === 0) {
+                container.innerHTML = '<div class="loading">No sales data available</div>';
+                return;
+            }
+
+            const maxSales = topProducts[0][1];
+            
+            let chartHtml = '<div style="padding: 1rem;">';
+            
+            topProducts.forEach(([name, sales]) => {
+                const percentage = (sales / maxSales) * 100;
+                chartHtml += `
+                    <div style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <span>${name}</span>
+                            <span style="font-weight: 600;">${sales} sold</span>
+                        </div>
+                        <div style="background: #edf2f7; height: 24px; border-radius: 12px; overflow: hidden;">
+                            <div style="background: linear-gradient(90deg, #667eea, #764ba2); width: ${percentage}%; height: 100%; border-radius: 12px;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            chartHtml += '</div>';
+            container.innerHTML = chartHtml;
+        }
+
+        // Auto-refresh every 60 seconds
+        let refreshInterval = setInterval(loadDashboardData, 60000);
+        
+        window.addEventListener('beforeunload', () => {
+            clearInterval(refreshInterval);
+        });
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

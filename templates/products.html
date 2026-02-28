@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">E-Commerce Admin</div>
+            <ul class="nav-menu">
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/users">Users</a></li>
+                <li><a href="/products" class="active">Products</a></li>
+                <li><a href="/orders">Orders</a></li>
+                <li><a href="/logs">Activity Logs</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2>Product Management</h2>
+                <button class="btn btn-primary" onclick="Modal.open('productModal')">Add New Product</button>
+            </div>
+            
+            <table id="products-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Products will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="Modal.close('productModal')">&times;</span>
+            <h2 id="modalTitle">Add New Product</h2>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" class="form-control" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea class="form-control" id="description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input type="number" step="0.01" class="form-control" id="price" required>
+                </div>
+                <div class="form-group">
+                    <label for="stockQuantity">Initial Stock</label>
+                    <input type="number" class="form-control" id="stockQuantity" value="0">
+                </div>
+                <button type="submit" class="btn btn-success">Save</button>
+                <button type="button" class="btn btn-danger" onclick="Modal.close('productModal')">Cancel</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        let editingProductId = null;
+        
+        async function loadProducts() {
+            try {
+                const products = await API.getProducts();
+                const tableBody = document.querySelector('#products-table tbody');
+                tableBody.innerHTML = products.map(product => {
+                    const stockStatus = product.stock_quantity <= 5 ? 'Low Stock' : 'In Stock';
+                    const statusClass = product.stock_quantity <= 5 ? 'alert-error' : 'alert-success';
+                    
+                    return `
+                        <tr>
+                            <td>${product.id}</td>
+                            <td>${product.name}</td>
+                            <td>${product.description || '-'}</td>
+                            <td>${formatCurrency(product.price)}</td>
+                            <td>${product.stock_quantity}</td>
+                            <td><span class="${statusClass}" style="padding: 0.25rem 0.5rem; border-radius: 4px;">${stockStatus}</span></td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="editProduct(${product.id})">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteProduct(${product.id})">Delete</button>
+                                <button class="btn btn-success btn-sm" onclick="updateStock(${product.id})">Update Stock</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                showAlert('Error loading products: ' + error.message, 'error');
+            }
+        }
+        
+        async function saveProduct(event) {
+            event.preventDefault();
+            
+            const productData = {
+                name: document.getElementById('productName').value,
+                description: document.getElementById('description').value,
+                price: parseFloat(document.getElementById('price').value),
+                stock_quantity: parseInt(document.getElementById('stockQuantity').value) || 0
+            };
+            
+            try {
+                if (editingProductId) {
+                    await API.updateProduct(editingProductId, productData);
+                    showAlert('Product updated successfully');
+                } else {
+                    await API.createProduct(productData);
+                    showAlert('Product created successfully');
+                }
+                
+                Modal.close('productModal');
+                loadProducts();
+                resetForm();
+            } catch (error) {
+                showAlert('Error saving product: ' + error.message, 'error');
+            }
+        }
+        
+        async function editProduct(id) {
+            try {
+                const products = await API.getProducts();
+                const product = products.find(p => p.id === id);
+                
+                editingProductId = product.id;
+                document.getElementById('productId').value = product.id;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('description').value = product.description || '';
+                document.getElementById('price').value = product.price;
+                document.getElementById('stockQuantity').value = product.stock_quantity;
+                document.getElementById('modalTitle').textContent = 'Edit Product';
+                Modal.open('productModal');
+            } catch (error) {
+                showAlert('Error loading product: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                try {
+                    await API.deleteProduct(id);
+                    showAlert('Product deleted successfully');
+                    loadProducts();
+                } catch (error) {
+                    showAlert('Error deleting product: ' + error.message, 'error');
+                }
+            }
+        }
+        
+        async function updateStock(productId) {
+            const newStock = prompt('Enter new stock quantity:');
+            if (newStock !== null) {
+                try {
+                    await API.updateInventory(productId, { quantity: parseInt(newStock) });
+                    showAlert('Stock updated successfully');
+                    loadProducts();
+                } catch (error) {
+                    showAlert('Error updating stock: ' + error.message, 'error');
+                }
+            }
+        }
+        
+        function resetForm() {
+            editingProductId = null;
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = '';
+            document.getElementById('modalTitle').textContent = 'Add New Product';
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadProducts);
+    </script>
+</body>
+</html>
